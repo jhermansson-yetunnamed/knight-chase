@@ -1,0 +1,53 @@
+services:
+  # Backend API
+  - type: web
+    name: knight-chase-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: PORT
+        value: 5001
+      - key: DB_HOST
+        fromDatabase:
+          name: knight-chase-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: knight-chase-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: knight-chase-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: knight-chase-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: knight-chase-db
+          property: password
+
+  # Frontend Static Site
+  - type: web
+    name: knight-chase-frontend
+    env: static
+    region: oregon
+    plan: free
+    buildCommand: cd frontend && npm install && REACT_APP_API_URL=$BACKEND_URL npm run build
+    staticPublishPath: ./frontend/build
+    envVars:
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: knight-chase-api
+          envVarKey: RENDER_EXTERNAL_URL
+
+databases:
+  - name: knight-chase-db
+    databaseName: knight_chase
+    user: knight_chase_user
+    plan: free
